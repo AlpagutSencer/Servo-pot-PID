@@ -28,14 +28,15 @@ double rem;
 
 double Input;
 double Output;
-double Setpoint=80;
+double Setpoint=1300;
 double errorSum;
 double lastErr=0;
 double ITerm=0;
 double DTerm=0;
-double outMin=0;
-double outMax=1000;
-double kp=0;
+double outMin=700;
+double outMax=2350;
+double error=0;
+double kp=4.8;
 double ki=0;
 double kd=0;
 
@@ -65,16 +66,16 @@ if (TIM_GetITStatus(TIM4, TIM_IT_Update) != RESET){
   TIM_ClearITPendingBit(TIM4, TIM_IT_Update);
  
 
-Input = getADC(0.01);
+Input = getADC(0.1);
 
-double error = Setpoint - Input;
+ error = Setpoint - Input;
 //errorSum+=error; //error accumulator
 
 //ITerm += (ki * error);
 
 
 
-if(Input>Setpoint+0.05){ITerm=0;}
+//if(Input>Setpoint+0.05){ITerm=0;}
 
 /*if(Input>Setpoint+0.05){ki=0.0030;}
 else {ki=0.00015;}*/
@@ -93,10 +94,16 @@ DTerm = kd * ((error-lastErr)/1000);
 if(ITerm>outMax){ITerm=outMax;}
 else if(ITerm<outMin){ITerm=outMin;}
 
+
+Output = kp*error+ITerm+DTerm;
+
+
 if(Output>outMax){Output=outMax;}
 if(Output<outMin){Output=outMin;}
 
-Output = kp*error+ITerm+DTerm;
+
+TIM2->CCR4=Output;
+
 
 lastErr = error;
 
@@ -125,7 +132,7 @@ int main(void) {
     clearlcd();
     USART_init();
     adc_init();
-    //tim_init();
+    tim_init();
 
   
     
@@ -171,7 +178,7 @@ int main(void) {
 
     TIM_Cmd(TIM2, ENABLE);
 
- TIM2->CCR4=1000; //CCR4=Output;
+ 
             
 
     // main loop
@@ -193,10 +200,10 @@ int main(void) {
 
     rem = getADC(0.01);
    
-    sprintf(buffer,"%d.%ld \r\n",(int)rem, (uint32_t)((rem - (int)rem) *1000000.0));
+    sprintf(buffer,"%d.%ld Out: %d.%ld\r\n",(int)rem, (uint32_t)((rem - (int)rem) *1000000.0),(int)Output, (uint32_t)((Output - (int)Output) *1000000.0));
 
-   // sprintf(buffer2,"%d.%ld \r\n",(int)ITerm, (uint32_t)((ITerm - (int)ITerm) *1000000.0));
-   // USART_SendString(USART1,buffer2);
+   //sprintf(buffer2,"%d.%ld \r\n",(int)Output, (uint32_t)((Output - (int)Output) *1000000.0));
+    //USART_SendString(USART1,buffer2);
     USART_SendString(USART1,buffer);
     
 
@@ -310,11 +317,11 @@ double getADC(double alpha)
 
  arithAveraged = avgSum/SAMPLE;
 
- exponentialAveraged = (1 -alpha) * arithAveraged + alpha * lastExpAveraged;
+ exponentialAveraged = ((1 -alpha) * lastExpAveraged) + (alpha * arithAveraged);
 
  lastExpAveraged = exponentialAveraged; 
     
 
 
-  return exponentialAveraged;
+  return arithAveraged;
 }
