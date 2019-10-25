@@ -21,14 +21,14 @@
 
 
 
-char buffer[20];
+char buffer[30];
 char buffer2[20];
 int TIM_Pulse;
 double rem;
 
 double Input;
 double Output;
-double Setpoint=1200;
+double Setpoint=1700;
 double errorSum;
 double lastErr=0;
 double ITerm=0;
@@ -36,9 +36,9 @@ double DTerm=0;
 double outMin=700;
 double outMax=2350;
 double error=0;
-double kp=4;
+double kp=4.2;
 double ki=0.001;
-double kd=40;
+double kd=500;
 
 
 
@@ -66,7 +66,7 @@ if (TIM_GetITStatus(TIM4, TIM_IT_Update) != RESET){
   TIM_ClearITPendingBit(TIM4, TIM_IT_Update);
  
 
-Input = getADC(0.1);
+Input = getADC(0.90);
 
  error = Setpoint - Input;
 //errorSum+=error; //error accumulator
@@ -80,7 +80,7 @@ Input = getADC(0.1);
 /*if(Input>Setpoint+0.05){ki=0.0030;}
 else {ki=0.00015;}*/
 
-if((error>-200)&&(error<200))
+if((error>-300)&&(error<300))
 {
   
   ITerm += (ki * error);
@@ -198,9 +198,10 @@ int main(void) {
     
     
 
-    rem = getADC(0.01);
+    rem = getADC(0.90);
    
-    sprintf(buffer,"%d.%ld Out: %d.%ld\r\n",(int)rem, (uint32_t)((rem - (int)rem) *1000000.0),(int)Output, (uint32_t)((Output - (int)Output) *1000000.0));
+    sprintf(buffer,"%d.%ld  Out: %d.%ld I: %d.%ld\r\n",(int)rem, (uint32_t)((rem - (int)rem) *100.0),
+    (int)Output, (uint32_t)((Output - (int)Output) *1000.0),(int)ITerm, (uint32_t)((ITerm - (int)ITerm) *1000.0));
 
    //sprintf(buffer2,"%d.%ld \r\n",(int)Output, (uint32_t)((Output - (int)Output) *1000000.0));
     //USART_SendString(USART1,buffer2);
@@ -317,11 +318,11 @@ double getADC(double alpha)
 
  arithAveraged = avgSum/SAMPLE;
 
- exponentialAveraged = ((1 -alpha) * lastExpAveraged) + (alpha * arithAveraged);
+ exponentialAveraged = alpha * arithAveraged + (1-alpha) * lastExpAveraged;
 
  lastExpAveraged = exponentialAveraged; 
     
 
 
-  return arithAveraged;
+  return exponentialAveraged;
 }
