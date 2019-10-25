@@ -21,14 +21,14 @@
 
 
 
-char buffer[30];
+char buffer[60];
 char buffer2[20];
 int TIM_Pulse;
 double rem;
 
 double Input;
 double Output;
-double Setpoint=1700;
+double Setpoint=1500;
 double errorSum;
 double lastErr=0;
 double ITerm=0;
@@ -37,7 +37,7 @@ double outMin=700;
 double outMax=2350;
 double error=0;
 double kp=4.2;
-double ki=0.001;
+double ki=0.005;
 double kd=500;
 
 
@@ -66,7 +66,7 @@ if (TIM_GetITStatus(TIM4, TIM_IT_Update) != RESET){
   TIM_ClearITPendingBit(TIM4, TIM_IT_Update);
  
 
-Input = getADC(0.90);
+Input = getADC(0.85);
 
  error = Setpoint - Input;
 //errorSum+=error; //error accumulator
@@ -198,10 +198,11 @@ int main(void) {
     
     
 
-    rem = getADC(0.90);
+    rem = getADC(0.85);
    
-    sprintf(buffer,"%d.%ld  Out: %d.%ld I: %d.%ld\r\n",(int)rem, (uint32_t)((rem - (int)rem) *100.0),
-    (int)Output, (uint32_t)((Output - (int)Output) *1000.0),(int)ITerm, (uint32_t)((ITerm - (int)ITerm) *1000.0));
+    sprintf(buffer,"R:  %d.%ld Out:  %d.%ld I:  %d.%ld D: %d.%ld E:  %d.%ld \r\n",(int)rem, (uint32_t)((rem - (int)rem) *1000.0),
+    (int)Output, (uint32_t)((Output - (int)Output) *1000.0),(int)ITerm, (uint32_t)((ITerm - (int)ITerm) *1000.0),
+    (int)DTerm, (uint32_t)((DTerm - (int)DTerm) *1000.0),(int)error, (uint32_t)((error - (int)error) *1000.0));
 
    //sprintf(buffer2,"%d.%ld \r\n",(int)Output, (uint32_t)((Output - (int)Output) *1000000.0));
     //USART_SendString(USART1,buffer2);
